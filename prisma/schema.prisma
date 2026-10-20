@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "client"
+}
+datasource db {
+  provider = "postgresql"
+}
+enum UserSource {
+  LOCAL
+  DIRECTORY
+}
+enum Role {
+  READER
+  EDITOR
+  ADMIN
+}
+enum Category {
+  NEWS
+  SECURITY
+  KNOWLEDGE
+}
+model User {
+  id String @id @default(cuid())
+  subject String @unique
+  email String @unique
+  name String
+  role Role @default(READER)
+  source UserSource @default(DIRECTORY)
+  passwordHash String?
+  enabled Boolean @default(true)
+  sessionVersion Int @default(0)
+  createdAt DateTime @default(now())
+  posts Post[]
+}
+model Post {
+  id String @id @default(cuid())
+  slug String @unique
+  title String
+  excerpt String
+  content String
+  category Category
+  featured Boolean @default(false)
+  published Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId String?
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  @@index([published, createdAt])
+}
+
+model LoginAttempt {
+  key String @id
+  attempts Int @default(0)
+  expiresAt DateTime
+  @@index([expiresAt])
+}
